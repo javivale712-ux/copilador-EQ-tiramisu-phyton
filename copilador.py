@@ -53,3 +53,81 @@ class MotorCompilador:
         lineas = codigo.split("\n")
         patron = re.compile(
             r'(?P<CADENA>".*?"|\'.*?\')|'
+            r'(?P<NUMERO>\b\d+(\.\d+)?\b)|'
+            r'(?P<ASIGNACION>=)|'
+            r'(?P<PALABRA>[a-zA-Z_]\w*)'
+        )
+        for num_linea, linea in enumerate(lineas, start=1):
+            for coincidencia in patron.finditer(linea):
+                tipo - coincidencia.lastgroup
+                valor = coincidencia.group(tipo)
+                tokens_exp.append(f"Linea {num_linea}: [{valor}] -> {tipo}")
+        return "\n".join(tokens_exp)
+        
+    @staticmethod 
+    def generar_arbol_sintactico(codigo_traducido):
+        try:
+            arbol = ast.parse(codigo_traducido)
+            return ast.dump(arbol, indent-4)
+        except SyntaxError as e:
+            texto_error = e.text.strip() if e.text else ""
+            return f"ERROR_SINTAXIS\nLinea {e.lineno}\n{e.msg}\nColumna {e.offset}\nTexto {texto_error}"
+        except Exception as e:
+            return f"Error al generar AST:\n{str(e)}"
+
+    @staticmethod
+    def ejecutar_codigo(codigo_traducido):
+        salida_consola - io.StringIO()
+        espacio_nombres = {}
+        try:
+            modulo - ast.parse(codigo_traducido)
+            expresion_final = None 
+
+            if modulo.body and isinstance(modulo.body[-1], ast.Expr):
+                expresion_final = ast.Expression(modulo.body.pop().value)
+
+            modulo - ast.fix_missing_locations(modulo)
+            codigo_principal = compile(modulo, "<chu>", "exec")
+            codigo_expresion = None 
+            if expresion_final is not None:
+                expresion_final = ast.fix_missing_locations(expresion_final)
+                codigo_expresion = compile(expresion_final, "<chu>", "eval")
+
+            with contextlib.redirect_stdout(salida_consola):
+                exec(codigo_principal, espacio_nombres)
+                valor_final - eval(codigo_expresion, espacio_nombres) if codigo_expresion else None 
+
+            salida_texto = salida_consola.getvalue().strip()
+            if salida_texto and valor_final is not None:
+                return f"{salida_texto}\n{valor_final}"
+            if salida_texto:
+                return salida_consola.getvalue()
+            if valor_final is not None:
+                return str(valor_final)
+            return "Ejecucion completa sin salida."
+        except Exception as e:
+            return f"Error de ejecucion:\n{type(e).__name__}: {str(e)}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+
+        
