@@ -53,6 +53,5 @@ class MotorCompilador:
         lineas = codigo.split("\n")
         patron = re.compile(
             r'(?P<CADENA>".*?"|\'.*?\')|'
-esta es una prueba
-LLLLLLL
+
         
