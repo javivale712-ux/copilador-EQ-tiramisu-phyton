@@ -108,7 +108,61 @@ class MotorCompilador:
 
 
 
+ @staticmethod
+    def detectar_errores(codigo_original):
+        errores = []
+        lineas = codigo_original.split("\n")
 
+        # Reglas estructurales del lenguaje CHU (permite encontrar varios errores en una sola pasada).
+        patron_bloque = re.compile(r'^\s*(Si|Tons|Tonses|mientras|para|definir|clase)\b')
+        for num_linea, linea in enumerate(lineas, start=1):
+            if not linea:
+                continue
+
+            indent_texto = re.match(r'^\s*', linea).group(0)
+            if "\t" in indent_texto:
+                errores.append(f"Línea {num_linea}: no uses tabulaciones; usa espacios.")
+            if "\t" not in indent_texto and (len(indent_texto) % 4 != 0):
+                errores.append(f"Línea {num_linea}: la indentación debe ser múltiplo de 4 espacios.")
+
+            stripped = linea.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+
+            if patron_bloque.match(linea) and not stripped.endswith(":"):
+                errores.append(f"Línea {num_linea}: falta ':' al final del bloque.")
+
+            # Detecta comillas simples/dobles sin cerrar en la línea.
+            if linea.count('"') % 2 != 0:
+                errores.append(f"Línea {num_linea}: cadena con comillas dobles sin cerrar.")
+            if linea.count("'") % 2 != 0:
+                errores.append(f"Línea {num_linea}: cadena con comillas simples sin cerrar.")
+
+        # Balanceo de paréntesis/corchetes/llaves.
+        apertura = {"(": ")", "[": "]", "{": "}"}
+        cierre_a_apertura = {")": "(", "]": "[", "}": "{"}
+        pila = []
+        for num_linea, linea in enumerate(lineas, start=1):
+            for col, ch in enumerate(linea, start=1):
+                if ch in apertura:
+                    pila.append((ch, num_linea, col))
+                elif ch in cierre_a_apertura:
+                    if not pila or pila[-1][0] != cierre_a_apertura[ch]:
+                        errores.append(f"Línea {num_linea}, columna {col}: cierre '{ch}' sin apertura correspondiente.")
+                    else:
+                        pila.pop()
+        for ch, num_linea, col in pila:
+            errores.append(f"Línea {num_linea}, columna {col}: apertura '{ch}' sin cierre '{apertura[ch]}'.")
+
+        # Validación de sintaxis Python tras traducción de CHU.
+        codigo_traducido = MotorCompilador.traducir_codigo(codigo_original)
+        try:
+            ast.parse(codigo_traducido)
+        except SyntaxError as e:
+            token = "desconocido"
+            if e.text and e.offset:
+                texto = e.text.rstrip("\n")
+                for m in re.finditer(r'\b\w+\b|\S', texto):
 
 
 
