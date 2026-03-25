@@ -220,6 +220,60 @@ return f"Error de ejecución:\n{type(e).__name__}: {str(e)}"
 
 
 
+self.consola.config(state="disabled")
+
+    def _crear_menu(self):
+        barra_menu = tk.Menu(self.ventana)
+        self.ventana.config(menu=barra_menu)
+        menu_archivo = tk.Menu(barra_menu, tearoff=0)
+        barra_menu.add_cascade(label="Archivo", menu=menu_archivo)
+        menu_archivo.add_command(label="Nuevo", command=self.nuevo_archivo)
+        menu_archivo.add_command(label="Abrir", command=self.abrir_archivo)
+        menu_archivo.add_command(label="Guardar", command=self.guardar)
+        menu_archivo.add_separator()
+        menu_archivo.add_command(label="Salir", command=self.salir)
+
+        menu_ejecutar = tk.Menu(barra_menu, tearoff=0)
+        barra_menu.add_cascade(label="Ejecutar", menu=menu_ejecutar)
+        menu_ejecutar.add_command(label="Arbol Sintactico", command=self.mostrar_arbol_sintactico)
+        menu_ejecutar.add_command(label="Analisis Lexico", command=self.mostrar_analisis_lexico)
+        menu_ejecutar.add_command(label="Compilar", command=self.compilar)
+        menu_ejecutar.add_command(label="Derivacion", command=self.mostrar_derivacion)
+        menu_ejecutar.add_separator()
+        menu_ejecutar.add_checkbutton(
+            label="Autoactualizar salida",
+            variable=self.auto_actualizar_var,
+            command=self._al_cambiar_autoactualizacion
+        )
+
+    def _on_codigo_modificado(self, _evento=None):
+        if not self.texto.edit_modified():
+            return
+
+        self.texto.edit_modified(False)
+        if self.auto_actualizar_var.get():
+            self._programar_actualizacion()
+
+    def _programar_actualizacion(self):
+        if self._id_actualizacion is not None:
+            self.ventana.after_cancel(self._id_actualizacion)
+        # Debounce para evitar compilar en cada tecla sin pausa.
+        self._id_actualizacion = self.ventana.after(450, self._actualizar_desde_codigo)
+
+    def _actualizar_desde_codigo(self):
+        self._id_actualizacion = None
+        self._compilar_codigo(incluir_derivacion=False)
+
+    def _al_cambiar_autoactualizacion(self):
+        if self.auto_actualizar_var.get():
+            self._programar_actualizacion()
+            self._escribir_consola("Autoactualizacion activada. La salida se refresca segun cambie el codigo.")
+            return
+
+        if self._id_actualizacion is not None:
+            self.ventana.after_cancel(self._id_actualizacion)
+            self._id_actualizacion = None
+        self._escribir_consola("Autoactualizacion desactivada.")
 
 
 
