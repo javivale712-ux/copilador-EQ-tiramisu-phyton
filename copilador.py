@@ -54,4 +54,5 @@ class MotorCompilador:
         patron = re.compile(
             r'(?P<CADENA>".*?"|\'.*?\')|'
 esta es una prueba
+LLLLLLL
         
