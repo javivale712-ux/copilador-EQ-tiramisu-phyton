@@ -274,60 +274,6 @@ self.consola.config(state="disabled")
             self.ventana.after_cancel(self._id_actualizacion)
             self._id_actualizacion = None
         self._escribir_consola("Autoactualizacion desactivada.")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         if errores:
             resultado = (
                 f"Se detectaron {len(errores)} errores de compilacion:\n"
