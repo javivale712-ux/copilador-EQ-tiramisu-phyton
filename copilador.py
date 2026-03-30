@@ -4,7 +4,7 @@ import re
 import io
 import contextlib
 import ast
-
+ 
 class LenguajeChu:
     PALABRAS_RESERVADAS = {
         "y": "and", "o": "or", "nel": "not", "mentira": "False",
