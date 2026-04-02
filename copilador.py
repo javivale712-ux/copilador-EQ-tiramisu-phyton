@@ -127,3 +127,67 @@ class MotorCompilador:
             stripped = linea.strip()
             if not stripped or stripped.startswith("#"):
                 continue
+if patron_bloque.match(linea) and not stripped.endswith(":"):
+                errores.append(f"Línea {num_linea}: falta ':' al final del bloque.")
+
+            # Detecta comillas simples/dobles sin cerrar en la línea.
+            if linea.count('"') % 2 != 0:
+                errores.append(f"Línea {num_linea}: cadena con comillas dobles sin cerrar.")
+            if linea.count("'") % 2 != 0:
+                errores.append(f"Línea {num_linea}: cadena con comillas simples sin cerrar.")
+
+        # Balanceo de paréntesis/corchetes/llaves.
+        apertura = {"(": ")", "[": "]", "{": "}"}
+        cierre_a_apertura = {")": "(", "]": "[", "}": "{"}
+        pila = []
+        for num_linea, linea in enumerate(lineas, start=1):
+            for col, ch in enumerate(linea, start=1):
+                if ch in apertura:
+                    pila.append((ch, num_linea, col))
+                elif ch in cierre_a_apertura:
+                    if not pila or pila[-1][0] != cierre_a_apertura[ch]:
+                        errores.append(f"Línea {num_linea}, columna {col}: cierre '{ch}' sin apertura correspondiente.")
+                    else:
+                        pila.pop()
+        for ch, num_linea, col in pila:
+            errores.append(f"Línea {num_linea}, columna {col}: apertura '{ch}' sin cierre '{apertura[ch]}'.")
+
+        # Validación de sintaxis Python tras traducción de CHU.
+        codigo_traducido = MotorCompilador.traducir_codigo(codigo_original)
+        try:
+            ast.parse(codigo_traducido)
+        except SyntaxError as e:
+            token = "desconocido"
+            if e.text and e.offset:
+                texto = e.text.rstrip("\n")
+                for m in re.finditer(r'\b\w+\b|\S', texto):
+                    if m.start() <= e.offset - 1 < m.end():
+                        token = m.group()
+                        break
+            errores.append(
+                f"Línea {e.lineno}: error de sintaxis ({e.msg}). Token problemático: '{token}'."
+            )
+
+        # Quita duplicados conservando orden.
+        return list(dict.fromkeys(errores))
+
+    @staticmethod
+    def generar_codigo_intermedio(codigo_traducido):
+        """ Genera código intermedio tipo tres direcciones """
+        try:
+            arbol = ast.parse(codigo_traducido)
+            instrucciones = []
+            temp_count = 0
+
+            def nuevo_temp():
+                nonlocal temp_count
+                temp_count += 1
+                return f"t{temp_count}"
+
+            def recorrer(nodo):
+                if isinstance(nodo, ast.Assign):
+                    destino = nodo.targets[0].id
+                    valor = procesar_expr(nodo.value)
+                    instrucciones.append(f"{destino} = {valor}")
+
+                elif isinstance(nodo, ast.Expr):
