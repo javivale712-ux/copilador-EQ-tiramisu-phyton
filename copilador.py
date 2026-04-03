@@ -191,3 +191,67 @@ if patron_bloque.match(linea) and not stripped.endswith(":"):
                     instrucciones.append(f"{destino} = {valor}")
 
                 elif isinstance(nodo, ast.Expr):
+
+procesar_expr(nodo.value)
+
+         elif isinstance (nodo,ast.if):
+          cond = procesar_expr(nodo.test)
+          instrucciones.append(f"IF{cond}GOTOL_true")
+          instrucciones.append(f"GOTOL_false") 
+          
+               elif isinstance(nodo,ast.While):
+                 cond = procesar_expr(nodo.test)
+                  instrucciones.append(f"WHILE{cond}")
+                   for hijo in ast.iter_child_nodes(nodo):
+                    recorrer(hijo)
+
+          def procesar_expr(expr):
+           isinstance(expr,ast.BinOp):
+           izq = procesar_expr(expr.left)
+           der = procesar_expr(expr.right)
+           op = type(expr.op)._name_ 
+           temp = nuevo_temp()
+           instrucciones.append(f"{tem} = {izq} {op} {der}")
+           return temp
+
+       elif isinstance(expr,ast.Constant):
+                  return repr(expr.value)
+         
+           elif isinstance(expr,ast.Name):
+                           return expr.id 
+ return "?"
+
+ recorrer(arbol)
+     return "\n".join(instrucciones) if instrucciones else "sin código intermedio generado."
+
+           except Exception as e:
+               return f"Error en codigo intermedio:\n{str(e)}"
+
+@staticmethod
+def generar_derivacion(codigo_original): 
+     codigo_traducido = MotorCompilador.traducir_codigo(codigo_original)
+     lineas_origen = cpdigo_original.splitlines()
+     lineas_destino = codigo_traducido.splitlines()
+
+cambios = []
+    max_lineas = max(len(lineas_origen),len(lineas_destino))
+    for i in range(max_lineas):
+     origen = lineas_origen[i] if i < len(lineas_origen)else""
+     destino = lineas_destino[i] if i < len(lineas_destino)else""
+     if origen != destino:
+      cambios.append (f"L{i + 1}: {origen} -> {destino}")
+
+if not cambios:
+ cambios.append("sin cambios de traduccion(codigo CHU ya coincide con python para estas lineas)
+
+                return (
+                 "=== DERIVACION DE COMPILACION (CHU -> PYTHON) ===\n"
+            "1) Sustitucion de tipos: entero/Flota/Texto/Siono -> asignacion Python\n"
+            "2) Reemplazo de palabras reservadas CHU por equivalentes Python\n"
+            "3) Preservacion de cadenas e indentacion original\n\n"
+            "Cambios por linea:\n"
+            + "\n".join(cambios)
+        )
+class IDEChu:
+
+    def _init_(self, ventana_raiz):
