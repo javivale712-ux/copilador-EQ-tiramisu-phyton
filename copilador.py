@@ -321,3 +321,68 @@ self.ventana = ventana_raiz
 
     def _al_cambiar_autoactualizacion(self):
         if self.auto_actualizar_var.get()
+self._programar_actualizacion()
+            self._escribir_consola("Autoactualizacion activada. La salida se refresca segun cambie el codigo.")
+            return
+
+        if self._id_actualizacion is not None:
+            self.ventana.after_cancel(self._id_actualizacion)
+            self._id_actualizacion = None
+        self._escribir_consola("Autoactualizacion desactivada.")
+
+    def _obtener_analisis_codigo(self):
+        codigo_original = self.texto.get(1.0, tk.END)
+        codigo_traducido = MotorCompilador.traducir_codigo(codigo_original)
+        analisis_lexico = MotorCompilador.analizar_tokens(codigo_original)
+        arbol_sintactico = MotorCompilador.generar_arbol_sintactico(codigo_traducido)
+        return analisis_lexico, arbol_sintactico
+
+    def mostrar_analisis_lexico(self):
+        analisis_lexico, _ = self._obtener_analisis_codigo()
+        contenido = analisis_lexico or "No se encontraron tokens para analizar."
+        self._mostrar_panel_analisis("Analisis Lexico", "=== ANALISIS LEXICO ===\n\n" + contenido)
+
+    def mostrar_arbol_sintactico(self):
+        _, arbol_sintactico = self._obtener_analisis_codigo()
+        self._mostrar_panel_analisis("Arbol Sintactico", "=== ARBOL SINTACTICO (AST) ===\n\n" + arbol_sintactico)
+
+    def compilar(self):
+        self._compilar_codigo(incluir_derivacion=False)
+
+    def mostrar_codigo_intermedio(self):
+        codigo_original = self.texto.get(1.0, tk.END)
+        codigo_traducido = MotorCompilador.traducir_codigo(codigo_original)
+        codigo_intermedio = MotorCompilador.generar_codigo_intermedio(codigo_traducido)
+
+        self._mostrar_panel_analisis(
+            "Codigo Intermedio",
+            "=== CODIGO INTERMEDIO (TRES DIRECCIONES) ===\n\n" + codigo_intermedio
+        )
+
+    def mostrar_derivacion(self):
+        codigo_original = self.texto.get(1.0, tk.END)
+        errores = MotorCompilador.detectar_errores(codigo_original)
+        derivacion = MotorCompilador.generar_derivacion(codigo_original)
+        if errores:
+            resultado = (
+                f"Se detectaron {len(errores)} errores de compilacion:\n"
+                + "\n".join(f"- {e}" for e in errores)
+                + "\n\n"
+                + derivacion
+            )
+        else:
+            resultado = derivacion
+        self._escribir_consola(resultado)
+
+    def _compilar_codigo(self, incluir_derivacion):
+        codigo_original = self.texto.get(1.0, tk.END)
+        codigo_traducido = MotorCompilador.traducir_codigo(codigo_original)
+        errores = MotorCompilador.detectar_errores(codigo_original)
+
+        if errores:
+            resultado = (
+                f"Se detectaron {len(errores)} errores de compilacion:\n"
+                + "\n".join(f"- {e}" for e in errores)
+            )
+            if incluir_derivacion:
+                resultado += "\n\n" + MotorCompilador.generar_derivacion(codigo_original)
