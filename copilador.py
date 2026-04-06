@@ -256,3 +256,68 @@ if not cambios:
 class IDEChu:
 
     def _init_(self, ventana_raiz):
+self.ventana = ventana_raiz
+        self.ventana.title("Compilador Chu")
+        self.ventana.geometry("900x650")
+        self.archivo_actual = None
+        self.ventana_analisis = None
+        self.auto_actualizar_var = tk.BooleanVar(value=True)
+        self._id_actualizacion = None
+        self._crear_interfaz()
+        self._crear_menu()
+
+    def _crear_interfaz(self):
+        self.texto = tk.Text(self.ventana, wrap="word", font=("Consolas", 12))
+        self.texto.pack(expand=True, fill="both", padx=5, pady=5)
+        self.texto.bind("<<Modified>>", self._on_codigo_modificado)
+        self.texto.edit_modified(False)
+
+        self.consola = tk.Text(self.ventana, height=12, bg="#1e1e1e", fg="#00ff00", font=("Consolas", 11))
+        self.consola.pack(fill="both", padx=5, pady=5)
+        self.consola.config(state="disabled")
+
+    def _crear_menu(self):
+        barra_menu = tk.Menu(self.ventana)
+        self.ventana.config(menu=barra_menu)
+        menu_archivo = tk.Menu(barra_menu, tearoff=0)
+        barra_menu.add_cascade(label="Archivo", menu=menu_archivo)
+        menu_archivo.add_command(label="Nuevo", command=self.nuevo_archivo)
+        menu_archivo.add_command(label="Abrir", command=self.abrir_archivo)
+        menu_archivo.add_command(label="Guardar", command=self.guardar)
+        menu_archivo.add_separator()
+        menu_archivo.add_command(label="Salir", command=self.salir)
+
+        menu_ejecutar = tk.Menu(barra_menu, tearoff=0)
+        barra_menu.add_cascade(label="Ejecutar", menu=menu_ejecutar)
+        menu_ejecutar.add_command(label="Arbol Sintactico", command=self.mostrar_arbol_sintactico)
+        menu_ejecutar.add_command(label="Analisis Lexico", command=self.mostrar_analisis_lexico)
+        menu_ejecutar.add_command(label="Compilar", command=self.compilar)
+        menu_ejecutar.add_command(label="Codigo Intermedio", command=self.mostrar_codigo_intermedio)
+        menu_ejecutar.add_command(label="Derivacion", command=self.mostrar_derivacion)
+        menu_ejecutar.add_separator()
+        menu_ejecutar.add_checkbutton(
+            label="Autoactualizar salida",
+            variable=self.auto_actualizar_var,
+            command=self._al_cambiar_autoactualizacion
+        )
+
+    def _on_codigo_modificado(self, _evento=None):
+        if not self.texto.edit_modified():
+            return
+
+        self.texto.edit_modified(False)
+        if self.auto_actualizar_var.get():
+            self._programar_actualizacion()
+
+    def _programar_actualizacion(self):
+        if self._id_actualizacion is not None:
+           self.ventana.after_cancel(self._id_actualizacion)
+        #Debounce para evitar compilar en cada tecla sin permiso.
+           self._id_actualizacion = self.ventana.after(450, self._actualizar_desde_codigo)
+
+    def _actualizar_desde_codigo(self):
+        self._id_actualizacion = None
+        self._compilar_codigo(incluir_derivacion=False)
+
+    def _al_cambiar_autoactualizacion(self):
+        if self.auto_actualizar_var.get()
