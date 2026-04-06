@@ -63,6 +63,7 @@ class MotorCompilador:
                 valor = coincidencia.group(tipo)
                 tokens_exp.append(f"Línea {num_linea}: [{valor}] → {tipo}")
         return "\n".join(tokens_exp)
+
 @staticmethod
     def generar_arbol_sintactico(codigo_traducido):
         try:
