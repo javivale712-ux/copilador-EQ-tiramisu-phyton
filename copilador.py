@@ -386,3 +386,103 @@ self._programar_actualizacion()
             )
             if incluir_derivacion:
                 resultado += "\n\n" + MotorCompilador.generar_derivacion(codigo_original)
+[7:11 p.m., 29/3/2026] Cortés 🫵🏿🖕🏿 Octavio: self.ventana = ventana_raiz
+        self.ventana.title("Compilador Chu")
+        self.ventana.geometry("900x650")
+        self.archivo_actual = None
+        self.ventana_analisis = None
+        self.auto_actualizar_var = tk.BooleanVar(value=True)
+        self._id_actualizacion = None
+        self._crear_interfaz()
+        self._crear_menu()
+
+    def _crear_interfaz(self):
+        self.texto = tk.Text(self.ventana, wrap="word", font=("Consolas", 12))
+        self.texto.pack(expand=True, fill="both", padx=5, pady=5)
+        self.texto.bind("<<Modified>>", self._on_codigo_modificado)
+        self.texto.edit_modified(False)
+
+        self.consola = tk.Text(self.ventana, height=12, bg="#1e1e1e", fg="#00ff00", font=("Consolas", 11))
+        self.consola.pack(fill="…
+[7:11 p.m., 29/3/2026] Cortés 🫵🏿🖕🏿 Octavio: self._programar_actualizacion()
+            self._escribir_consola("Autoactualizacion activada. La salida se refresca segun cambie el codigo.")
+            return
+
+        if self._id_actualizacion is not None:
+            self.ventana.after_cancel(self._id_actualizacion)
+            self._id_actualizacion = None
+        self._escribir_consola("Autoactualizacion desactivada.")
+
+    def _obtener_analisis_codigo(self):
+        codigo_original = self.texto.get(1.0, tk.END)
+        codigo_traducido = MotorCompilador.traducir_codigo(codigo_original)
+        analisis_lexico = MotorCompilador.analizar_tokens(codigo_original)
+        arbol_sintactico = MotorCompilador.generar_arbol_sintactico(codigo_traducido)
+        return analisis_lexico, arbol_sintactico
+
+    de…
+[7:12 p.m., 29/3/2026] Cortés 🫵🏿🖕🏿 Octavio: self._escribir_consola(resultado)
+            return
+
+        resultado_ejecucion = MotorCompilador.ejecutar_codigo(codigo_traducido)
+        resultado = "Compilacion exitosa.\n\n=== RESULTADO ===\n" + resultado_ejecucion
+        if incluir_derivacion:
+            resultado += "\n\n" + MotorCompilador.generar_derivacion(codigo_original)
+        self._escribir_consola(resultado)
+
+    def _escribir_consola(self, texto):
+        self.consola.config(state="normal")
+        self.consola.delete(1.0, tk.END)
+        self.consola.insert(tk.END, "=== TERMINAL ===\n\n")
+        self.consola.insert(tk.END, texto)
+        self.consola.config(state="disabled")
+
+    def _mostrar_panel_analisis(self, titulo, contenido):
+        if self.ventana_analisis is None or not self.ventana_analisis.winfo_exists():
+            self.ventana_analisis = tk.Toplevel(self.ventana)
+            self.ventana_analisis.geometry("750x600")
+            self.texto_analisis = tk.Text(self.ventana_analisis, bg="#0d1117", fg="#58a6ff", font=("Consolas", 10))
+            self.texto_analisis.pack(fill="both", expand=True)
+        self.ventana_analisis.title(titulo)
+        self.texto_analisis.config(state="normal")
+        self.texto_analisis.delete(1.0, tk.END)
+        self.texto_analisis.insert(tk.END, contenido)
+        self.texto_analisis.config(state="disabled")
+
+    def nuevo_archivo(self):
+        self.texto.delete(1.0, tk.END)
+        self.archivo_actual = None
+
+    def abrir_archivo(self):
+        archivo = filedialog.askopenfilename(title="Abrir archivo .chu", filetypes=[("Archivos Chu", "*.chu")])
+        if archivo:
+            with open(archivo, "r", encoding="utf-8") as f:
+                self.texto.delete(1.0, tk.END)
+                self.texto.insert(tk.END, f.read())
+            self.archivo_actual = archivo
+            self.ventana.title(f"Compilador Chu - {archivo}")
+
+    def guardar(self):
+        if self.archivo_actual:
+            with open(self.archivo_actual, "w", encoding="utf-8") as f:
+                f.write(self.texto.get(1.0, tk.END))
+            messagebox.showinfo("Guardar", "Guardado con éxito")
+        else:
+            self.guardar_como()
+
+    def guardar_como(self):
+        archivo = filedialog.asksaveasfilename(title="Guardar como", defaultextension=".chu", filetypes=[("Archivos Chu", "*.chu")])
+        if archivo:
+            with open(archivo, "w", encoding="utf-8") as f:
+                f.write(self.texto.get(1.0, tk.END))
+            self.archivo_actual = archivo
+            self.ventana.title(f"Compilador Chu - {archivo}")
+
+    def salir(self):
+        if messagebox.askokcancel("Salir", "¿Deseas salir?"):
+            self.ventana.destroy()
+
+if _name_ == "_main_":
+    raiz = tk.Tk()
+    app = IDEChu(raiz)
+    raiz.mainloop()             
